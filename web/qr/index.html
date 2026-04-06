@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eye Candy — QR Code</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <!-- QR code generator library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+</head>
+<body>
+
+  <!-- ── Header ────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="logo">
+        <span class="logo-eye">👁</span>
+        <span class="logo-text">Eye Candy</span>
+      </a>
+      <nav class="nav">
+        <a href="../index.html" class="nav-link">← Back to Shop</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ── QR page ───────────────────────────────────────────── -->
+  <div class="qr-page">
+    <h1>Get the QR Code</h1>
+    <p>
+      Share this QR code so anyone can scan it with their phone and instantly
+      browse and try on products in augmented reality — no app required.
+    </p>
+
+    <!-- URL input + generate button -->
+    <div class="qr-url-row">
+      <input
+        type="text"
+        id="urlInput"
+        class="qr-url-input"
+        placeholder="Paste your deployed URL here…"
+        aria-label="Site URL"
+      >
+      <button class="qr-generate-btn" onclick="generateQR()">Generate</button>
+    </div>
+
+    <!-- QR canvas -->
+    <div class="qr-canvas-wrap" id="qrWrap">
+      <canvas id="qrCanvas"></canvas>
+    </div>
+
+    <!-- Download button -->
+    <div>
+      <button class="qr-download-btn" id="downloadBtn" onclick="downloadQR()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download PNG
+      </button>
+    </div>
+
+    <!-- Instructions -->
+    <p class="qr-note">
+      <strong>Deployment steps:</strong><br>
+      1. Push the <code>web/</code> folder to a public GitHub repo.<br>
+      2. Enable <strong>GitHub Pages</strong> (Settings → Pages → Deploy from branch).<br>
+      3. Or deploy to <strong>Vercel</strong> / <strong>Netlify</strong> by dragging the <code>web/</code> folder.<br>
+      4. Paste your live URL above and re-generate the QR code.
+    </p>
+  </div>
+
+  <script>
+    /* ── Auto-detect the likely site root URL ────────────── */
+    function detectSiteUrl() {
+      // When hosted, strip /qr/index.html or /qr/ from the path
+      const base = location.href
+        .replace(/\/qr\/index\.html.*$/, '/')
+        .replace(/\/qr\/?$/, '/');
+      return base;
+    }
+
+    /* ── QR generation ───────────────────────────────────── */
+    async function generateQR() {
+      const url = document.getElementById('urlInput').value.trim();
+      if (!url) return;
+
+      const canvas = document.getElementById('qrCanvas');
+      try {
+        await QRCode.toCanvas(canvas, url, {
+          width: 256,
+          margin: 2,
+          color: { dark: '#000000', light: '#ffffff' },
+          errorCorrectionLevel: 'M'
+        });
+        document.getElementById('downloadBtn').style.display = 'inline-flex';
+      } catch (err) {
+        console.error('QR generation failed:', err);
+      }
+    }
+
+    function downloadQR() {
+      const canvas = document.getElementById('qrCanvas');
+      const link = document.createElement('a');
+      link.download = 'eyecandy-ar-qr.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    /* ── Init: pre-fill with detected URL and render ─────── */
+    (function init() {
+      const input = document.getElementById('urlInput');
+      input.value = detectSiteUrl();
+      generateQR();
+    })();
+  </script>
+
+</body>
+</html>

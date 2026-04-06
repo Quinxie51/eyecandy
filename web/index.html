@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Eye Candy — Try on clothing and accessories in augmented reality, right from your phone.">
+  <title>Eye Candy — AR Try-On</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ── Header ────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-eye">👁</span>
+        <span class="logo-text">Eye Candy</span>
+      </a>
+      <nav class="nav">
+        <a href="#products" class="nav-link">Shop</a>
+        <a href="qr/index.html" class="nav-link">Get QR Code</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ── Hero ──────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">WebAR — No App Needed</div>
+      <h1 class="hero-title">See it on you<br><span class="accent">before you buy</span></h1>
+      <p class="hero-subtitle">
+        Browse any product, tap <strong>Try in AR</strong>, and place it in your real space
+        using your phone's camera — no app install required.
+      </p>
+      <div class="hero-steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <span>Pick a product</span>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <span>Tap "View in AR"</span>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <span>See it in your space</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Search ────────────────────────────────────────────── -->
+  <section class="search-section" id="products">
+    <div class="container">
+      <div class="search-bar">
+        <input
+          type="text"
+          id="searchInput"
+          class="search-input"
+          placeholder="Search products (e.g. sweater, jacket)…"
+          aria-label="Search products"
+        >
+        <button class="search-btn" onclick="searchProducts()">Search</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Product grid ──────────────────────────────────────── -->
+  <main class="main-content">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Featured Products</h2>
+        <p class="section-subtitle" id="productCount"></p>
+      </div>
+
+      <div class="loading-state" id="loadingState">
+        <div class="spinner"></div>
+        <p>Loading products…</p>
+      </div>
+
+      <div class="product-grid" id="productGrid"></div>
+
+      <div class="empty-state" id="emptyState" style="display:none">
+        <p>No products found. Try a different search.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── Footer ────────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span class="logo-text">Eye Candy</span>
+          <p>AR shopping powered by Snap3D &amp; model-viewer</p>
+        </div>
+        <div class="footer-links">
+          <a href="qr/index.html" class="footer-link">QR Code</a>
+          <a href="https://modelviewer.dev" target="_blank" rel="noopener" class="footer-link">model-viewer</a>
+          <a href="https://devpost.com/software/eye-candy" target="_blank" rel="noopener" class="footer-link">Devpost</a>
+        </div>
+      </div>
+      <p class="footer-copy">© 2024 Eye Candy · Snap Hackathon Runner Up 🏆</p>
+    </div>
+  </footer>
+
+  <script>
+    const BACKEND_URL = 'https://spectacles-vxd1.onrender.com';
+
+    /* ── Fallback sample products ─────────────────────────── */
+    const SAMPLE_PRODUCTS = [
+      {
+        id: 'red-sweater',
+        title: 'Classic Red Sweater',
+        price: { amount: '89.99', currencyCode: 'USD' },
+        imageUrl: null,
+        category: 'Tops',
+        description: 'A cozy, classic knit sweater in deep red — perfect for layering in cooler weather.',
+        color: '#8b1a1a'
+      },
+      {
+        id: 'leather-jacket',
+        title: 'Leather Jacket',
+        price: { amount: '249.99', currencyCode: 'USD' },
+        imageUrl: null,
+        category: 'Outerwear',
+        description: 'A timeless moto-style leather jacket. Slim fit, matte finish.',
+        color: '#1a1209'
+      },
+      {
+        id: 'denim-jacket',
+        title: 'Denim Jacket',
+        price: { amount: '129.99', currencyCode: 'USD' },
+        imageUrl: null,
+        category: 'Outerwear',
+        description: 'Lightly washed denim jacket with a relaxed, vintage-inspired silhouette.',
+        color: '#2b3f5c'
+      },
+      {
+        id: 'white-sneakers',
+        title: 'White Leather Sneakers',
+        price: { amount: '119.00', currencyCode: 'USD' },
+        imageUrl: null,
+        category: 'Footwear',
+        description: 'Minimalist low-top leather sneakers. Clean white with a subtle rubber sole.',
+        color: '#d8d8d0'
+      },
+      {
+        id: 'sunglasses',
+        title: 'Retro Round Sunglasses',
+        price: { amount: '49.99', currencyCode: 'USD' },
+        imageUrl: null,
+        category: 'Accessories',
+        description: 'Retro-inspired round frames with UV400-rated lenses.',
+        color: '#3b2a1a'
+      },
+      {
+        id: 'wool-coat',
+        title: 'Wool Overcoat',
+        price: { amount: '349.00', currencyCode: 'USD' },
+        imageUrl: null,
+        category: 'Outerwear',
+        description: 'A luxurious double-breasted wool overcoat. Long length, structured shoulders.',
+        color: '#2d2015'
+      }
+    ];
+
+    let allProducts = [];
+
+    /* ── Helpers ──────────────────────────────────────────── */
+
+    function accentColorFor(title = '') {
+      const t = title.toLowerCase();
+      if (t.includes('red'))                   return '#8b1a1a';
+      if (t.includes('black') || t.includes('leather')) return '#1a1209';
+      if (t.includes('blue') || t.includes('denim'))    return '#2b3f5c';
+      if (t.includes('white') || t.includes('sneak'))   return '#d8d8d0';
+      if (t.includes('glass') || t.includes('sunglass')) return '#3b2a1a';
+      if (t.includes('wool') || t.includes('coat'))     return '#2d2015';
+      return '#1e1e1e';
+    }
+
+    function categoryFor(title = '') {
+      const t = title.toLowerCase();
+      if (t.includes('sweater') || t.includes('shirt') || t.includes('top')) return 'Tops';
+      if (t.includes('jacket') || t.includes('coat') || t.includes('hoodie')) return 'Outerwear';
+      if (t.includes('shoe') || t.includes('sneak') || t.includes('boot'))    return 'Footwear';
+      if (t.includes('glass') || t.includes('hat') || t.includes('bag'))      return 'Accessories';
+      return 'Fashion';
+    }
+
+    function fmtPrice(price) {
+      if (!price) return '';
+      return `${price.currencyCode} ${parseFloat(price.amount).toFixed(2)}`;
+    }
+
+    function encodeProductParams(product) {
+      return new URLSearchParams({
+        id:          product.id || '',
+        title:       product.title || '',
+        price:       fmtPrice(product.price),
+        imageUrl:    product.imageUrl || '',
+        color:       product.color || '#1e1e1e',
+        category:    product.category || categoryFor(product.title),
+        description: product.description || ''
+      }).toString();
+    }
+
+    /* ── Fetch from backend, fall back to samples ─────────── */
+
+    async function fetchProducts() {
+      try {
+        const res = await fetch(BACKEND_URL + '/v1/products', {
+          signal: AbortSignal.timeout(8000)
+        });
+        if (!res.ok) throw new Error('non-200');
+        const data = await res.json();
+        const items = (data.products || []);
+        if (items.length === 0) throw new Error('empty');
+        return items.map(p => ({
+          ...p,
+          color:       accentColorFor(p.title),
+          category:    categoryFor(p.title),
+          description: p.description || ''
+        }));
+      } catch {
+        console.info('[Eye Candy] Backend unavailable — using sample products.');
+        return SAMPLE_PRODUCTS;
+      }
+    }
+
+    /* ── Render ───────────────────────────────────────────── */
+
+    function createCard(product) {
+      const card = document.createElement('div');
+      card.className = 'product-card';
+
+      const hasImage = product.imageUrl && product.imageUrl !== 'null' && product.imageUrl !== '';
+      const mediaHTML = hasImage
+        ? `<img src="${product.imageUrl}" alt="${product.title}" class="card-img"
+             onerror="this.outerHTML='<div class=\\'card-swatch\\'style=\\'background:${product.color || '#1e1e1e'}\\'><span class=\\'swatch-label\\'>${product.category || 'Fashion'}</span></div>'">`
+        : `<div class="card-swatch" style="background:${product.color || '#1e1e1e'}">
+             <span class="swatch-label">${product.category || 'Fashion'}</span>
+           </div>`;
+
+      const price = fmtPrice(product.price);
+
+      card.innerHTML = `
+        <div class="card-media">
+          ${mediaHTML}
+          <div class="card-ar-badge">AR</div>
+        </div>
+        <div class="card-body">
+          <p class="card-category">${product.category || 'Fashion'}</p>
+          <h3 class="card-title">${product.title}</h3>
+          ${price ? `<p class="card-price">${price}</p>` : ''}
+          <a href="product.html?${encodeProductParams(product)}" class="card-btn">Try in AR →</a>
+        </div>
+      `;
+      return card;
+    }
+
+    function render(products) {
+      const grid    = document.getElementById('productGrid');
+      const loading = document.getElementById('loadingState');
+      const empty   = document.getElementById('emptyState');
+      const count   = document.getElementById('productCount');
+
+      loading.style.display = 'none';
+      grid.innerHTML = '';
+
+      if (products.length === 0) {
+        empty.style.display = 'block';
+        count.textContent = '';
+        return;
+      }
+
+      empty.style.display = 'none';
+      count.textContent = `${products.length} item${products.length !== 1 ? 's' : ''}`;
+      products.forEach(p => grid.appendChild(createCard(p)));
+    }
+
+    function searchProducts() {
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      render(q ? allProducts.filter(p => p.title.toLowerCase().includes(q)) : allProducts);
+    }
+
+    document.getElementById('searchInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') searchProducts();
+    });
+
+    /* ── Init ─────────────────────────────────────────────── */
+    (async () => {
+      allProducts = await fetchProducts();
+      render(allProducts);
+    })();
+  </script>
+
+</body>
+</html>
